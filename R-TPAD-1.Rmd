@@ -1,0 +1,489 @@
+---
+title: "INFORME ANALITICA DE DATOS TPAD-1"
+author: "TPAD-1"
+date: "12/2/2021"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#INSTALAMOS LAS LIBRERIAS A UTILIZAR
+```{r}
+install.packages("hexbin")
+install.packages("readr")
+install.packages("ggplot2")
+install.packages("dplyr")
+install.packages("scatterplot3d",dependencies=T)
+install.packages("tidyverse")
+```
+
+#CARGAMOS LAS LIBRERIAS QUE VAMOS A UTILIZAR
+```{r}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(hexbin)
+library(scatterplot3d)
+library(tidyverse)
+```
+#OBTENEMOS EL ENLACE DE LA CARPETA EN LA QUE ESTAMOS TRABAJANDO
+```{r}
+getwd()
+```
+#BUSCAMOS LA RUTA DEL DATAFRAME
+```{r}
+cafe_df<-read.csv("/cloud/project/R-MARKDOWN/cafesito/produccion.csv", header = TRUE, sep=",", dec=".")
+```
+#NOS INDICA EL TIPO O CLASE DE LA VARIABLE RENDIMIENTO
+```{r}
+class(cafe_df$Rendimiento..ha.ton.)
+```
+#A CONTINUACION PODEMOS IDENTIFICAR LA ESTRUCTURA DEL DATAFRAME
+```{r}
+str(cafe_df)
+```
+#CONOCER LA DIMENSION DEL DATAFRAME
+```{r}
+dim(cafe_df)
+```
+#PODEMOS VER LA INFORMACION RESUMIDA DEL DATAFRAME DE LAS VARIABLES CUANTITATIVAS Y VALORES ESTADISTICOS
+```{r}
+summary(cafe_df)
+```
+#INFORMACION CUANTITATIVA DEL DATAFRAME USANDO VARIAS VARIABLES
+```{r}
+tapply(cafe_df$Rendimiento..ha.ton., cafe_df$Anio, summary)
+```
+#ALGUNOS VALORES ESTADISTICOS
+```{r}
+sum(cafe_df$Rendimiento..ha.ton.)
+prod(cafe_df$Area.Nacional..ha.)
+var(cafe_df$Rendimiento..ha.ton.)
+length(cafe_df$Area.Nacional..ha.)
+mean(cafe_df$Rendimiento..ha.ton.)
+max(cafe_df$Rendimiento..ha.ton.)
+min(cafe_df$Rendimiento..ha.ton.)
+sd(cafe_df$Rendimiento..ha.ton.)
+```
+#RESTAR EL VALOR MAXIMO Y EL VALOR MINIMO DE LA VARIABLE RENDIMIENTO
+```{r}
+max(cafe_df$Rendimiento..ha.ton.)-min(cafe_df$Rendimiento..ha.ton.)
+```
+#NOMBRE DE LAS VARIABLES DEL DATAFRAME
+```{r}
+names(cafe_df)
+colnames(cafe_df)
+```
+#VER LAS PRIMERAS Y ULTIMAS 6 FILAS DEL DATAFRAME
+```{r}
+head(cafe_df)
+tail(cafe_df)
+```
+#INSPECCIONAR DE FORMA DETALLADA EN EL DATAFRAME SELECCIONANDO SUS COLUMNAS Y FILAS
+```{r}
+cafe_df[3]
+cafe_df[,4]
+cafe_df[,2]
+cafe_df[2,]
+cafe_df[100,]
+```
+#CON LA FUNCION TABLE LISTAMOS LAS FILAS DE LA VARIABLE SELECCIONADA
+```{r}
+table(cafe_df$Produccion..ton.)
+table(cafe_df$Rendimiento..ha.ton.)
+```
+#PODEMOS VER LA UTILIDAD E INFORMACION DE LA FUNCION
+```{r}
+help (subset)
+```
+#CON LA FUNCION SUBSET PODEMOS SELECCIONAR POR VARIABLES EN NUESTRO DATAFRAME
+```{r}
+subset(cafe_df, subset = Departamento == 'HUILA')
+subset(cafe_df, subset = Departamento == 'META')
+subset(cafe_df, subset = Anio == '2009')
+subset(cafe_df, subset = Anio == '2012')
+
+subset(cafe_df, subset=Anio == '2009', 
+       select=c('Rendimiento..ha.ton.', 'Produccion.Nacional..ton.'))
+
+subset(cafe_df, subset=Departamento == 'CUNDINAMARCA', 
+       select=c('Rendimiento..ha.ton.', 'Produccion.Nacional..ton.'))
+
+subset(cafe_df, subset=Departamento == 'CUNDINAMARCA' & Anio <= '2012', 
+       select=c( 'Produccion.Nacional..ton.', 'Area.Nacional..ha.', 'Rendimiento..ha.ton.'))
+
+```
+
+#PONEMOS LA INSTRUCCION EN UNA VARIABLE Y LO GRAFICAMOS
+```{r}
+Grupo_Antioquia<-subset(cafe_df, subset=Departamento == 'ANTIOQUIA' & Anio <= '2012', 
+                        select=c( 'Produccion.Nacional..ton.', 'Area.Nacional..ha.', 'Rendimiento..ha.ton.'))
+Grupo_Antioquia
+plot(Grupo_Antioquia)
+```
+
+#PODEMOS VER SI EXISTEN DATOS NULOS EN EL DATAFRAME
+```{r}
+is.na(cafe_df)
+is.na(cafe_df$Area..ha.)
+is.na(cafe_df$Rendimiento..ha.ton.)
+```
+#NOS MUESTRA LA SUMA DE LOS VALORES NULOS EN EL DATAFRAME
+```{r}
+rowSums(is.na(cafe_df))
+```
+#NOS MUESTRA LA SUMA TOTAL DE TODOS LOS VALORES NULOS
+```{r}
+sum(rowSums(is.na(cafe_df)))
+```
+
+#VISUALIZAMOS HISTOGRAMAS POR VARIABLE
+```{r}
+plot(cafe_df$Rendimiento..ha.ton.)
+```
+
+#GRAFICAMOS LA VARIABLE Y SELECCIONAMOS ALGUNOS DETALLES
+```{r}
+plot(cafe_df$Rendimiento..ha.ton., main ="Gráfico Dispersion", 
+     sub ="CANTIDAD",
+     type ="p", # p indica puntos de dispersion
+     col ="red",
+     xlab ="cantidad",
+     ylab = "Rendimiento (ha/ton)")
+
+```
+
+```{r}
+plot(cafe_df$Rendimiento..ha.ton., main ="Gráfico Dispersion", 
+     sub ="Indices",
+     type ="b", # b indica lineas uniendo los puntos de dispersion
+     col ="red",
+     xlab ="cantidad",
+     ylab = "Rendimiento (ha/ton)")
+```
+
+```{r}
+plot(cafe_df$Rendimiento..ha.ton., main ="Gráfico Dispersion", 
+     sub ="Indices",
+     type ="o", # b indica lineas sobreindicadas sobre los puntos de dispersion
+     col ="blue",
+     xlab ="cantidad",
+     ylab = "Rendimiento (ha/ton)")
+```
+
+```{r}
+plot(cafe_df$Rendimiento..ha.ton., main ="Gráfico Dispersion", 
+     sub ="Indices",
+     type ="h", # b indica lineas tipo histograma sobre los puntos de dispersion
+     col ="blue",
+     xlab ="cantidad",
+     ylab = "Rendimiento (ha/ton)")
+```
+
+```{r}
+plot(cafe_df$Rendimiento..ha.ton., main ="Gráfico Dispersion", 
+     sub ="Indices",
+     type ="s", # s funcion escalera (horizontal a vertical)
+     col ="blue",
+     xlab ="cantidad",
+     ylab = "Rendimiento (ha/ton)")
+```
+
+```{r}
+plot(cafe_df$Rendimiento..ha.ton., main ="Gráfico Dispersion", 
+     sub ="Indices",
+     type ="l", # l indica lineas 
+     col ="blue",
+     xlab ="cantidad",
+     ylab = "Rendimiento (ha/ton)")
+```
+
+#GRAFICAS POR VARIABLES
+```{r}
+plot(x = cafe_df$Area..ha.,  y = cafe_df$Rendimiento..ha.ton.)
+plot(x = cafe_df$Area..ha.,  y = cafe_df$Area.Nacional..ha.)
+plot(x = cafe_df$Anio,  y = cafe_df$Rendimiento..ha.ton.)
+plot(x = cafe_df$Anio,  y = cafe_df$Produccion..ton.)
+plot(x = cafe_df$Area..ha.,  y = cafe_df$Produccion.Nacional..ton.)
+plot(cafe_df$Area..ha.)
+```
+
+#REPRESENTA LA FRECUENCIA DE LOS DATOS EN UN HISTOGRAMA
+```{r}
+hist(cafe_df$Rendimiento..ha.ton., main ="Histograma", 
+     sub ="Rendimiento (ha/ton)",
+     col ="red",
+     xlab ="Cantidad (miles) ",
+     ylab = "Frecuencia")
+```
+
+#DIAGRAMA DE BARRAS DE LA COLUMNA RENDIMIENTO
+```{r}
+barplot(table(cafe_df$Rendimiento..ha.ton.))
+```
+
+#PARA VER COMO SE DISTRUBUYEN LOS DATOS PODEMOS USAR LA FUNCION DENSITY, LA DENSIDAD ES UNA VERSION SUAVIZASA DEL HISTOGRAMA, NOS PERMITE OBSERVAR SI LOS DATOS SE COMPORTAN COMO UNA DISTRIBUCION NORMAL
+```{r}
+plot(density(cafe_df$Rendimiento..ha.ton.), main="Densidad para el Rendimiento (ha/ton)")
+plot(density(cafe_df$Produccion.Nacional..ton.), main="Densidad para la produccion Nacional (ton)")
+plot(density(cafe_df$Area.Nacional..ha.), main="Densidad para el Area Nacional (ha)")
+```
+
+#HACEMOS UN GRAFICO DE PASTEL
+```{r}
+pie(table(cafe_df$Departamento[1:10]))
+pie(table(cafe_df$Rendimiento..ha.ton.[1:10]))
+```
+
+#LOS BOXPLOTS O DIAGRAMAS DE CAJA SE CONTRIBUYEN A PARTIR DE LOS PERCENTILES. 
+#SE CONSTRUYE UN RECTANGULO USANDO ENTRE EL PRIMER Y EL TERCER CUARTIL.
+#LA ALTURA DEL RECTANGULO ES EL RANGO INTERCUARTIL.
+#LA MEDIANA ES UNA LINEA QUE DIVIDE EL RECTANGULO-
+#LOS VALORES MAS EXTREMOS QUE EL LARGO DE LOS BRAZOS SON CONSIDERADOS ATIPICOS
+#EL BOXPLOT NOS ENTREGA INFORMACION SOBRE LA SIMETRIA DE LA DISTRIBUCION DE LOS DATOS, SI LA MEDIANA NO ESTA EN EL CENTRO DEL RECTANGULO LA DISTRIBUCION NO ES SIMETRICRA.
+#SON UTILES PARA VER LA PRESENCIA DE VALORES ATIPICOS O OUTLERS
+```{r}
+boxplot(cafe_df$Rendimiento..ha.ton.,ylab="Rendimiento (ha/ton)")
+boxplot(cafe_df$Produccion.Nacional..ton.,ylab="Produccion Nacional (ton)")
+```
+
+#SELECCIONAR POR RANGOS
+```{r}
+boxplot(x=cafe_df$Rendimiento..ha.ton.[1:10],main="Rendimiento (ha/ton)")
+```
+
+#CON LA FUNCION HEXBIN SE PUEDE MEJORAR LA PRESENTACION Y LECTURA DE LOS GRAFICOS.
+#SE CREA EL OBJETO BIN CON LA RELACION DE DOS VARIABLES 
+```{r}
+bin1<-hexbin(cafe_df$Produccion..ton.,cafe_df$Rendimiento..ha.ton., xbins=10)
+
+plot(bin1)
+
+bin2<-hexbin(cafe_df$Area.Nacional..ha.,cafe_df$Rendimiento..ha.ton., xbins=10)
+
+plot(bin2)
+```
+
+#HALLAMOS LA CORRELACION ENTRE LAS VARIABLES POR CORRELACION DE PEARSON-
+#INDICAMOS LAS VARIABLES CON VALORES DESCARTANDO LOS VALORES NULOS QUE EXISTAN
+```{r}
+cor(cafe_df$Area.Nacional..ha.,cafe_df$Rendimiento..ha.ton., use="complete.obs")
+```
+
+#PARA CALCULAR LA MODA SELECCIONANDO LAS VARIABLES EN EL DATAFRAME "cafe_df"
+```{r}
+moda=function(var){
+        frec.var<-table(var)
+        valor=which(frec.var==max(frec.var)) #Elemento con el valor
+        names(valor)}
+
+which.max(cafe_df$Rendimiento..ha.ton.)
+```
+#SEGUIMOS ESTUDIANDO EL COMPORTAMIENTO O DISTRIBUCION DE LOS DATOS O LA INFORMACION CON GRAFICOS DE DISPERSION.
+#GRAFICO DE DISPERSION DEL COMPORTAMIENTO DE LA PRODUCCION VS RENDIMIENTO, PERMITE ENTENDER O DESCUBRIR PATRONES EN LOS DATOS
+```{r}
+qplot(Produccion..ton., Rendimiento..ha.ton., data = cafe_df,
+      main ="Grafico de Dispersion",
+      col = "Red",
+      xlab ="Produccion (miles ton)",
+      ylab = "Rendimiento (ha/ton)")
+```
+
+#GRAFICO DE DISPERSION SEL COMPORTAMIENTO DE LA PRODUCCION NACIONAL VS RENDIMIENTO.
+```{r}
+qplot(Produccion.Nacional..ton., Rendimiento..ha.ton., data = cafe_df,
+      main ="Grafico de Dispersion",
+      col = "Red",
+      xlab ="Produccion Nacional (miles ton)",
+      ylab = "Rendimiento (ha/ton)")
+```
+
+#COEFICIENTE DE CORRELACION DE PEARSON ENTRE LA PRODUCCION NACIONAL Y EL RENDIMIENTO.
+#HALLAS LA CORRELACION ENTRE LAS VARIABLES POR CORRELACION DE PEARSON
+#INDICAMOS QUE UTILIZA LAS VARIABLES CON VALORES DESCARTANDO LOS VALORES NULOS QUE EXISTAN
+```{r}
+cor(cafe_df$Produccion.Nacional..ton.,cafe_df$Rendimiento..ha.ton., use="complete.obs")
+```
+
+#GRAFICO DE DISPERSION DEL COMPORTAMIENTO ENTRE EL AREA NACIONAL VS EL RENDIMIENTO. PERMITE ENTENDER O DESCUBRIR PATRONES EN LOS DATOS
+```{r}
+qplot(Area.Nacional..ha., Rendimiento..ha.ton., data = cafe_df,
+      main ="Grafico de Dispersion",
+      col = "Red",
+      xlab ="Area Nacional ha",
+      ylab = "Rendimiento (ha/ton)")
+```
+
+#COEFICIENTE DE CORRELACION DE PEARSON
+#COEFICIENTE DE CORRELACIÓN ENTRE EL AREA NA-CIONAL Y EL RENDIMIENTO
+#HALLAR LA CORRELACION ENTRE LAS VARIABLES POR METODO CORRELACION DE PEARSON
+#INDICAMOS QUE UTILIZA LAS VARIABLES CON VALORES DESCARTANDO LOS VALORES NULOS QUE EXISTAN 
+```{r}
+cor(cafe_df$Area.Nacional..ha.,cafe_df$Rendimiento..ha.ton., use="complete.obs")
+
+qplot(Anio, Rendimiento..ha.ton., data = cafe_df,
+       main ="Grafico de Dispersion",
+       col = "Red",
+       xlab ="Area Nacional ha",
+       ylab = "Rendimiento (ha/ton)")
+```
+
+#ESPECIFICAR EL DATAFRAME ES EL PRIMER ARGUMENTO EN LA FUNCIÓN GGPLOT
+# DENTRO DE AES() ESCRIBIMOS LAS VARIABLES (X,Y) QUE QUEREMOS GRAFICAR 
+# PERMITE ENTENDER O DESCUBRIR PATRONES EN LOS DATOS
+# SE PUEDE UTILIZAR EL PARAMETRO COLOR PARA REPRESENTAR UNA TERCERA VARIABLE
+# GRÁFICO DE DISPERSION: AREA NACIONAL VS RENDIMIENTO
+```{r}
+ggplot(cafe_df) + 
+        geom_point(aes(x = Area.Nacional..ha., y = Rendimiento..ha.ton., color = Anio))
+```
+
+#GRAFICO DE LINEAS: AREA NACIONAL VS RENDIMIENTO
+```{r}
+ggplot(cafe_df) + 
+        geom_line(aes(x = Area.Nacional..ha., y = Rendimiento..ha.ton., color = Anio))
+```
+
+#GRAFICO DE DISPERSION: PRODUCCION NACIONAL VS RENDIMIENTO
+```{r}
+ggplot(cafe_df) + 
+        geom_point(aes(x = Produccion.Nacional..ton., y = Rendimiento..ha.ton., color = Anio))
+```
+
+#GRAFICO DE LINEAS: PRODUCCION NACIONAL VS RENDIMIENTO
+```{r}
+ggplot(cafe_df) + 
+        geom_line(aes(x = Produccion.Nacional..ton., y = Rendimiento..ha.ton., color = Anio))
+```
+
+#OTRA FORMA DE GRAFICO DE LINEAS SIN REPRESENTAR LOS AÑOS
+```{r}
+data(cafe_df)
+ggplot(cafe_df, aes(x = Produccion.Nacional..ton., y = Rendimiento..ha.ton., color ="red")) + 
+        geom_line()
+
+```
+
+#HISTOGRAMA: AREA NACIONAL
+```{r}
+ggplot(cafe_df) + 
+        geom_histogram(aes(x = Area.Nacional..ha., color="red"))
+```
+
+#HISTOGRAMA PRODUCCION NACIONAL
+```{r}
+ggplot(cafe_df) + 
+        geom_histogram(aes(x = Produccion.Nacional..ton., color="red"))
+```
+
+#HISTOGRAMA RENDIMIENTO
+```{r}
+ggplot(cafe_df) + 
+        geom_histogram(aes(x = Rendimiento..ha.ton., color="red"))
+```
+
+#GRAFICO DE LINEAS: PRODUCCION NACIONAL VS RENDIMIENTO
+```{r}
+ggplot(cafe_df) + 
+        geom_line(aes(x = Produccion.Nacional..ton., y = Rendimiento..ha.ton., color = Anio))
+```
+
+#GRAFICO DE CAJAS: PRODUCCION NACIONA VS RENDIMIENTO
+```{r}
+ggplot(cafe_df) + 
+        geom_boxplot(aes(x = Produccion.Nacional..ton., y = Rendimiento..ha.ton., color = Anio))
+```
+
+#GRAFICO DE CAJAS: AREA NACIONAS VS RENDIMIENTO
+```{r}
+ggplot(cafe_df) + 
+        geom_boxplot(aes(x = Area.Nacional..ha., y = Rendimiento..ha.ton., color = Anio))
+```
+
+#GRAFICO DE DISPERSION JITTER: AREA NACIONAL VS RENDIMIENTO
+```{r}
+ggplot(cafe_df) + 
+        geom_jitter(aes(x = Area.Nacional..ha., y = Rendimiento..ha.ton., color = Anio))
+```
+
+#GRAFICO DE DISPERSION PRODUCCION NACIONAL VS RENDIMIENTO
+```{r}
+ggplot(cafe_df) + 
+        geom_point(aes(x = Produccion.Nacional..ton., y = Rendimiento..ha.ton., color = Anio))
+```
+
+#GRAFICO DE DISPERCION JITTER: PRODUCCION NACIONAL VS RENDIMIENTO
+```{r}
+ggplot(cafe_df) + 
+        geom_jitter(aes(x = Produccion.Nacional..ton., y = Rendimiento..ha.ton., color = Anio))
+```
+
+#OTRA FORMA CON GRAFICO DE DISPERSION SIN REPRESENTAR LOS AÑOS
+```{r}
+data(cafe_df)
+ggplot(cafe_df, aes(x = Produccion.Nacional..ton., y = Rendimiento..ha.ton., color ="red")) + 
+        geom_point()
+```
+
+#OTRA FORMA CON GRAFICO DE LINEAS SIN REPRESENTAR LOS AÑOS
+```{r}
+data(cafe_df)
+ggplot(cafe_df, aes(x = Produccion.Nacional..ton., y = Rendimiento..ha.ton., color ="red")) + 
+        geom_line()
+```
+
+#COMPARANDO CUANDO TIENE REPRESENTADO LOS AÑOS A CONTINUACION
+```{r}
+ggplot(cafe_df, aes(x = Produccion.Nacional..ton., y = Rendimiento..ha.ton., color = Anio)) + 
+        geom_line()
+```
+
+#TAMBIEN SE PUEDE REALIZAR DISPERSION EN PANELES POR AÑOS.
+#PERMITE ENTENDER O DESCUBRIR PATRONES EN LOS DATOS
+```{r}
+ggplot(cafe_df, aes(x = Produccion.Nacional..ton., y = Rendimiento..ha.ton.)) + 
+  geom_jitter() +
+  facet_grid(.~ Anio)
+```
+
+#PANELES SEPARADOS
+#TAMBIEN SE PUEDE REALIZAR DISPERSION EN PANELES SEPARADOS POR AÑOS
+```{r}
+ggplot(cafe_df, aes(x = Produccion.Nacional..ton., y = Rendimiento..ha.ton.)) + 
+  geom_point() +
+  facet_wrap(.~ Anio)
+
+ggplot(cafe_df, aes(x = Area.Nacional..ha., y = Rendimiento..ha.ton.)) + 
+  geom_point() +
+  facet_wrap(.~ Anio)
+```
+
+##COMPARANDO EL ANTERIOR CON EL GRAFICO DE DISPERSION SIN AÑOS
+# OTRA FORMA CON GRAFICO DE DISPERSION SIN REPRESENTAR LOS AÑOS
+```{r}
+data(cafe_df)
+ggplot(cafe_df, aes(x = Produccion.Nacional..ton., y = Rendimiento..ha.ton., color ="red")) + 
+  geom_point()
+```
+
+#COMPARAR CON GRAFICO DE DISPERSION PRODUCCION NACIONAL VS RENDIMIENTO CON AÑOS
+```{r}
+ggplot(cafe_df) + 
+  geom_jitter(aes(x = Produccion.Nacional..ton., y = Rendimiento..ha.ton., color = Anio))
+```
+
+#AHORA SE UTILIZARA UN SUAVIZADOR
+#LA GRAFICA LINEAL SUAVIZADA
+```{r}
+ggplot(cafe_df, aes(x = Area.Nacional..ha., y = Rendimiento..ha.ton.)) + 
+  geom_point() +
+  facet_wrap(.~ Anio) +
+  geom_smooth(span = 3)
+```
+
+FIN
